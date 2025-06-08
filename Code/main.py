@@ -45,3 +45,4 @@ if __name__ == "__main__":
 
     print("\n--- Task List After Removing Top Task ---")
     manager.showList()
+    print("test")
