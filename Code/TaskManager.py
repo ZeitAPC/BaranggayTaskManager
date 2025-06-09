@@ -1,29 +1,41 @@
 from Task import *
 
+
 class TaskManager:
     def __init__(self):
         self.listOfTasks = []  # Where the heap will be stored
         self.dictionary = {}  # Where the task name and the task object will be stored
 
-    def _heapify(self):
-        pass
+    def _heapify(self, i):
+        parent = (i - 1)//2
+        childVotes = self.listOfTasks[i].votes
+        parentVotes = self.listOfTasks[parent].votes
+        if parent >=0 and childVotes > parentVotes:
+            self.listOfTasks[i], self.listOfTasks[parent] = self.listOfTasks[parent], self.listOfTasks[i]
+            self._heapify(parent)
 
     def suggest(self, suggestion):
         entryNumber = len(self.dictionary) + 1
         newSuggestion = Task(entryNumber, suggestion)
         self.listOfTasks.append(newSuggestion)
         self.dictionary[entryNumber] = newSuggestion
-        self._heapify()
+        self._heapify(len(self.listOfTasks)-1)
 
     def vote(self, taskNumber):
         self.dictionary[taskNumber].votes +=1
-        self._heapify()
+
+        self._heapify(len(self.listOfTasks)-1)
 
     def isEmpty(self):
         length = len(self.listOfTasks)
         if length == 0:
             return True
         return False
+
+    def size(self):
+        if self is not self.isEmpty():
+            return len(self.listOfTasks)
+        return 0
 
     def done(self):
         finishedTask = self.listOfTasks[0]
@@ -46,6 +58,5 @@ class TaskManager:
         print("ID".ljust(8), "Task".ljust(longest), "Votes".ljust(longest+5))
         for k in self.listOfTasks:
             print("{:<8} {:<{taskWidth}} {:<12}".format(k.taskID, k.task, k.votes, taskWidth=longest, voteWidth=longest+5))
-        print(self.dictionary)
         # https://stackoverflow.com/questions/17330139/python-printing-a-dictionary-as-a-horizontal-table-with-headers
         # https://www.w3schools.com/python/ref_string_format.asp
