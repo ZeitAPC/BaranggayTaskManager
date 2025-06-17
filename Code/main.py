@@ -1,6 +1,29 @@
 from TaskManager import *
 import time
-pendingProjects = TaskManager()
+
+class FilteredTaskManager:
+    def __init__(self):
+        self.task_manager = TaskManager()
+        self.suggestions_set = set()
+
+    def suggest(self, suggestion):
+        normalized = suggestion.strip().lower()
+        if normalized in self.suggestions_set:
+            print(f"Duplicate suggestion ignored: '{suggestion}'")
+        else:
+            self.suggestions_set.add(normalized)
+            self.task_manager.suggest(suggestion)
+
+    def vote(self, task_id):
+        self.task_manager.vote(task_id)
+
+    def showList(self):
+        self.task_manager.showList()
+
+    def size(self):
+        return self.task_manager.size()
+    
+pendingProjects = FilteredTaskManager()
 
 def suggestionPeriod():
     suggestionPeriod = int(input("Continue voting period?: (1:Yes/2: No) "))
