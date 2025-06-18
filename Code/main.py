@@ -1,74 +1,50 @@
 from TaskManager import *
-import time
 
-class FilteredTaskManager:
-    def __init__(self):
-        self.task_manager = TaskManager()
-        self.suggestions_set = set()
+taskmanager = TaskManager() #Instantiates the Task Manager
+print("-" * 6, "Suggestion period started", "-" * 6)
+while True:
+    suggestion = str(input("Enter suggestion (enter \"STOP\" to end suggestion period): ")).strip()     # Prompts user for suggestion
+    if len(suggestion) == 0:                                                                            # Checks if input is empty
+        print("Invalid input: No suggestion entered.")
+        continue
+    if suggestion.lower() == "stop" and taskmanager.isEmpty():                                          # Checks if user wants to stop without entering anything
+        verify = str(input("Warning: List will be empty, proceed? (Y/N): "))                            # Prompts the user for confirmation
+        if verify.upper() == "Y":                                                                       # If user wants to end suggestion period
+            print("-" * 6, "Suggestion period concluded", "-" * 6)
+            break
+        elif verify.upper() == "N":                                                                     # If user doesn't to end suggestion period
+            continue
+    elif suggestion.lower() == "stop":                                                                  # If user wants to end suggestion period
+        print("-" * 6, "Suggestion period concluded", "-" * 6)
+        break
+    taskmanager.suggest(suggestion)                                                                     # Adds suggestion to the task manager
 
-    def suggest(self, suggestion):
-        normalized = suggestion.strip().lower()
-        if normalized in self.suggestions_set:
-            print(f"Duplicate suggestion ignored: '{suggestion}'")
+if taskmanager.isEmpty():                                                   # Checks if task manager is empty
+    print("Suggestion period concluded with no task being suggested. "      # Skips the voting and completion period if
+          "Voting and completion period will be skipped.")                  # task manager is empty
+else:
+    print("-" * 6, "Voting period start", "-" * 6)
+    while True:
+        taskmanager.showList()                                                  # Displays the task manager contents
+        voteATask = str(input("Enter task ID (enter 0 to end voting period): "))# Asks for taskID of the task to vote
+        if voteATask == "0":                                                    # Checks if user wants to end voting
+            print("-" * 6, "Voting period concluded", "-" * 6)
+            break
+        elif not voteATask.isdigit():                                           # Checks if input is not a number
+            print("Invalid input: enter a number\n")
+            continue
+        taskmanager.vote(int(voteATask))                                        # Adds vote if input is a number
+
+    taskmanager.finalize()                                                      # Sorts the task manager after the voting
+    taskmanager.showList()                                                      # Shows the task manager content
+
+    print("-" * 6, "Completion period start", "-" * 6)
+    while not taskmanager.isEmpty():                                                        # Checks if there are tasks in task manager
+        isDone = str(input(f"Is {taskmanager.peek()} finished? (Y/N): ")).strip().lower()   # Asks if top priority is finished
+        if isDone == "y":                                                                   # Checks if yes
+            taskmanager.done()
+        elif isDone == "n":                                                                 # Checks if no
+            print(f"Please focus on completing {taskmanager.peek()}")
         else:
-            self.suggestions_set.add(normalized)
-            self.task_manager.suggest(suggestion)
-
-    def vote(self, task_id):
-        self.task_manager.vote(task_id)
-
-    def showList(self):
-        self.task_manager.showList()
-
-    def size(self):
-        return self.task_manager.size()
-    
-pendingProjects = FilteredTaskManager()
-
-def suggestionPeriod():
-    suggestionPeriod = int(input("Continue voting period?: (1:Yes/2: No) "))
-    while suggestionPeriod != 1 and suggestionPeriod !=2:
-        print("Invalid input, please try again")
-        suggestionPeriod = int(input("Continue voting period?: (1:Yes/2: No) "))
-    if suggestionPeriod == 2:
-        return False
-    return True
-
-def votingPeriod():
-    votingPeriod = int(input("Continue voting? (1:Y/2:N): "))
-    if votingPeriod == 2:
-        return None
-
-i = int(0)
-print("Suggestion period, Please submit suggestions")
-while True:
-    suggestTask = str(input("Enter suggestion: "))
-    if len(suggestTask.strip()) > 0:
-        pendingProjects.suggest(suggestTask)
-    else:
-        print("Empty input, try again")
-    pendingProjects.showList()
-    i +=1
-    if i == 5:
-        if not suggestionPeriod():
-            break
-        i=0
-print("--- Suggestion period over ---\n")
-
-print("--- Voting period start ---")
-i=0
-while True:
-    pendingProjects.showList()
-    voteATask = int(input("Enter task ID: "))
-    while voteATask <=0 or voteATask > pendingProjects.size():
-        print("Task does not exist, try again")
-        voteATask = int(input("Enter task ID: "))
-        if voteATask <=pendingProjects.size() and voteATask != 0:
-            break
-    pendingProjects.vote(voteATask)
-    i +=1
-    if i == 5:
-        if votingPeriod() is None:
-            break
-        i= 0
-pendingProjects.showList()
+            print("Invalid input, please enter \"Y\" for Yes and \"N\" for No")             # Error message if input is not valid
+        taskmanager.showList()
